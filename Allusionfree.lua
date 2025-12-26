@@ -8,12 +8,10 @@ local PlaceId = game.PlaceId
 local Games = {
     [0] = "",
 }
-local FoundGame = Games[PlaceId] or false
+local FoundGame = [PlaceId] or false
 local FoundGame2 = Allusion_DarkLoader ~= "" and loadstring(game:HttpGet(Allusion_DarkLoader))() or false
 if FoundGame then
     loadstring(game:HttpGet(FoundGame))()
 elseif FoundGame2 then
     FoundGame2()
-else
-    Player:Kick("Allusion : Game Not Support")
 end
