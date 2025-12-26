@@ -8,7 +8,7 @@ local PlaceId = game.PlaceId
 local Games = {
     [11455876520] = "",
 }
-local FoundGame = [PlaceId] or false
+local FoundGame = PlaceId or false
 local FoundGame2 = Allusion_DarkLoader ~= "" and loadstring(game:HttpGet(Allusion_DarkLoader))() or false
 if FoundGame then
     loadstring(game:HttpGet(FoundGame))()
