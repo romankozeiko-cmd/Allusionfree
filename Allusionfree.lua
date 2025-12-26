@@ -6,7 +6,7 @@ local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
 local PlaceId = game.PlaceId
 local Games = {
-    [0] = "",
+    [11455876520] = "",
 }
 local FoundGame = [PlaceId] or false
 local FoundGame2 = Allusion_DarkLoader ~= "" and loadstring(game:HttpGet(Allusion_DarkLoader))() or false
