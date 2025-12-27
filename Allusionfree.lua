@@ -1,7 +1,4 @@
---[[ 
-    MOBILE KEY SYSTEM VERSION
-    BASED ON JUNKIE KEY SYSTEM
-]]
+-- FIXED FULLSCREEN MOBILE KEY SYSTEM + AUTOSAVE
 
 Config = {
     api = "7a4939b2-37ac-4a92-98d2-b2bacdf36791",
@@ -18,25 +15,20 @@ local function main()
     local ITEM_NAME = "Combat"
     local player = game:GetService("Players").LocalPlayer
 
-    local function equipLoop()
+    task.spawn(function()
         while true do
-            local character = player.Character
-            if character then
-                local humanoid = character:FindFirstChildOfClass("Humanoid")
-                local backpack = player:FindFirstChild("Backpack")
-                if not character:FindFirstChild(ITEM_NAME) then
-                    if backpack then
-                        local item = backpack:FindFirstChild(ITEM_NAME)
-                        if item and humanoid then
-                            humanoid:EquipTool(item)
-                        end
-                    end
+            local char = player.Character
+            if char then
+                local hum = char:FindFirstChildOfClass("Humanoid")
+                local bp = player:FindFirstChild("Backpack")
+                if hum and bp and not char:FindFirstChild(ITEM_NAME) then
+                    local tool = bp:FindFirstChild(ITEM_NAME)
+                    if tool then hum:EquipTool(tool) end
                 end
             end
             task.wait(2)
         end
-    end
-    task.spawn(equipLoop)
+    end)
 
     local VirtualUser = game:GetService("VirtualUser")
     task.spawn(function()
@@ -46,145 +38,195 @@ local function main()
             task.wait(0.05)
         end
     end)
-
-    task.spawn(function()
-        local player = game:GetService("Players").LocalPlayer
-        while true do
-            wait(15)
-            player.Character.HumanoidRootPart.CFrame =
-                workspace.Bosses.Waiting.Titan.qw.CFrame
-            wait(8)
-            if workspace.RespawnMobs.Titan.Titan.Titan then
-                player.Character.HumanoidRootPart.CFrame =
-                    workspace.RespawnMobs.Titan.Titan.CFrame
-            end
-            wait(27)
-            player.Character.HumanoidRootPart.CFrame =
-                workspace.Bosses.Waiting.Muscle.qw.CFrame
-            wait(8)
-            if workspace.RespawnMobs.Muscle.Muscle then
-                player.Character.HumanoidRootPart.CFrame =
-                    workspace.RespawnMobs.Muscle.Muscle.CFrame
-            end
-            wait(1)
-        end
-    end)
 end
 
 --------------------------------------------------
--- MOBILE KEY SYSTEM
+-- KEY SYSTEM
 --------------------------------------------------
-if getgenv().MobileKeySys then return end
-getgenv().MobileKeySys = true
+if getgenv().FixedKeySys then return end
+getgenv().FixedKeySys = true
 
 local CoreGui = game:GetService("CoreGui")
+local SAVE_FILE = "anubis_key.txt"
 
 local Colors = {
-    BG = Color3.fromRGB(30,30,35),
+    BG = Color3.fromRGB(20,20,25),
     Red = Color3.fromRGB(220,50,50),
     Green = Color3.fromRGB(80,200,80),
-    Button = Color3.fromRGB(45,45,50),
-    Input = Color3.fromRGB(25,25,30),
+    Button = Color3.fromRGB(45,45,55),
+    Input = Color3.fromRGB(30,30,35),
     Discord = Color3.fromRGB(88,101,242)
 }
 
+-- GUI
 local Gui = Instance.new("ScreenGui", CoreGui)
-Gui.Name = "MobileKeySystem"
+Gui.IgnoreGuiInset = true
 Gui.ResetOnSpawn = false
 
 local Frame = Instance.new("Frame", Gui)
-Frame.Size = UDim2.new(0, 330, 0, 280)
-Frame.Position = UDim2.new(0.5, 0, 0.5, 0)
-Frame.AnchorPoint = Vector2.new(0.5, 0.5)
+Frame.Size = UDim2.fromScale(1,1)
 Frame.BackgroundColor3 = Colors.BG
-Frame.BorderSizePixel = 0
-Instance.new("UICorner", Frame).CornerRadius = UDim.new(0, 14)
 
-local Title = Instance.new("TextLabel", Frame)
-Title.Size = UDim2.new(1, 0, 0, 40)
-Title.BackgroundTransparency = 1
-Title.Text = "Anubis HUB Key System"
-Title.Font = Enum.Font.GothamBold
-Title.TextSize = 16
-Title.TextColor3 = Colors.Red
+local Layout = Instance.new("UIListLayout", Frame)
+Layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+Layout.VerticalAlignment = Enum.VerticalAlignment.Center
+Layout.Padding = UDim.new(0,16)
+
+local function label(text,size,color)
+    local l = Instance.new("TextLabel", Frame)
+    l.Size = UDim2.new(1,-40,0,size)
+    l.BackgroundTransparency = 1
+    l.Text = text
+    l.Font = Enum.Font.GothamBold
+    l.TextSize = size
+    l.TextColor3 = color
+    return l
+end
+
+label("ANUBIS HUB", 28, Colors.Red)
+label("Key System", 14, Color3.fromRGB(180,180,180))
 
 local KeyBox = Instance.new("TextBox", Frame)
-KeyBox.Size = UDim2.new(0.9, 0, 0, 42)
-KeyBox.Position = UDim2.new(0.5, 0, 0.28, 0)
-KeyBox.AnchorPoint = Vector2.new(0.5, 0)
+KeyBox.Size = UDim2.new(0.9,0,0,50)
 KeyBox.PlaceholderText = "Enter your key..."
 KeyBox.Text = ""
-KeyBox.Font = Enum.Font.Gotham
-KeyBox.TextSize = 14
 KeyBox.TextColor3 = Color3.new(1,1,1)
+KeyBox.Font = Enum.Font.Gotham
+KeyBox.TextSize = 16
 KeyBox.BackgroundColor3 = Colors.Input
-Instance.new("UICorner", KeyBox).CornerRadius = UDim.new(0, 8)
+Instance.new("UICorner", KeyBox).CornerRadius = UDim.new(0,10)
 
-local function makeButton(text, y, color)
+local function button(text,color)
     local b = Instance.new("TextButton", Frame)
-    b.Size = UDim2.new(0.9, 0, 0, 42)
-    b.Position = UDim2.new(0.5, 0, y, 0)
-    b.AnchorPoint = Vector2.new(0.5, 0)
+    b.Size = UDim2.new(0.9,0,0,50)
     b.Text = text
     b.Font = Enum.Font.GothamBold
-    b.TextSize = 14
+    b.TextSize = 16
     b.TextColor3 = Color3.new(1,1,1)
     b.BackgroundColor3 = color
-    b.AutoButtonColor = true
-    Instance.new("UICorner", b).CornerRadius = UDim.new(0, 8)
+    Instance.new("UICorner", b).CornerRadius = UDim.new(0,10)
     return b
 end
 
-local VerifyBtn = makeButton("VERIFY KEY", 0.46, Colors.Button)
-local GetKeyBtn = makeButton("GET KEY", 0.63, Colors.Button)
-local DiscordBtn = makeButton("DISCORD", 0.80, Colors.Discord)
+local VerifyBtn = button("VERIFY KEY", Colors.Button)
+local GetKeyBtn = button("GET KEY", Colors.Button)
+local DiscordBtn = button("JOIN DISCORD", Colors.Discord)
 
-local Status = Instance.new("TextLabel", Frame)
-Status.Size = UDim2.new(1, 0, 0, 20)
-Status.Position = UDim2.new(0, 0, 0.92, 0)
-Status.BackgroundTransparency = 1
-Status.Font = Enum.Font.Gotham
-Status.TextSize = 12
-Status.Text = ""
-Status.TextColor3 = Colors.Red
+local Status = label("", 14, Colors.Red)
 
-local function setStatus(t, c)
+local busy = false
+
+local function setStatus(t,c)
     Status.Text = t
     Status.TextColor3 = c
 end
 
--- GET KEY
-GetKeyBtn.Activated:Connect(function()
-    local Junkie = loadstring(game:HttpGet(
+--------------------------------------------------
+-- FILE
+--------------------------------------------------
+local function saveKey(k)
+    if writefile then writefile(SAVE_FILE, k) end
+end
+
+local function loadKey()
+    if isfile and readfile and isfile(SAVE_FILE) then
+        return readfile(SAVE_FILE)
+    end
+end
+
+--------------------------------------------------
+-- JUNKIE SAFE CALL
+--------------------------------------------------
+local function getJunkie()
+    return loadstring(game:HttpGet(
         "https://junkie-development.de/sdk/JunkieKeySystem.lua"))()
-    local link = Junkie.getLink(Config.api, Config.provider, Config.service)
-    if setclipboard then setclipboard(link) end
-    setStatus("Key link copied!", Colors.Green)
+end
+
+--------------------------------------------------
+-- BUTTON LOGIC (FIXED)
+--------------------------------------------------
+
+GetKeyBtn.Activated:Connect(function()
+    if busy then return end
+    busy = true
+    setStatus("Generating key link...", Color3.fromRGB(255,170,0))
+
+    task.spawn(function()
+        local success, res = pcall(function()
+            local J = getJunkie()
+            return J.getLink(Config.api, Config.provider, Config.service)
+        end)
+
+        if success and res then
+            if setclipboard then setclipboard(res) end
+            setStatus("Key link copied ✔", Colors.Green)
+        else
+            setStatus("Failed to get key link", Colors.Red)
+        end
+        busy = false
+    end)
 end)
 
--- VERIFY KEY
 VerifyBtn.Activated:Connect(function()
-    local key = KeyBox.Text:gsub("%s+", "")
+    if busy then return end
+    busy = true
+
+    local key = KeyBox.Text:gsub("%s+","")
     if key == "" then
         setStatus("Enter a key!", Colors.Red)
+        busy = false
         return
     end
-    setStatus("Checking key...", Color3.fromRGB(255,170,0))
-    local Junkie = loadstring(game:HttpGet(
-        "https://junkie-development.de/sdk/JunkieKeySystem.lua"))()
-    if Junkie.verifyKey(Config.api, key, Config.service) then
-        setStatus("Key valid!", Colors.Green)
+
+    setStatus("Verifying key...", Color3.fromRGB(255,170,0))
+
+    task.spawn(function()
+        local success, valid = pcall(function()
+            local J = getJunkie()
+            return J.verifyKey(Config.api, key, Config.service)
+        end)
+
+        if success and valid then
+            saveKey(key)
+            setStatus("Key valid ✔", Colors.Green)
+            task.wait(0.6)
+            Gui:Destroy()
+            main()
+        else
+            setStatus("Invalid or expired key", Colors.Red)
+            busy = false
+        end
+    end)
+end)
+
+DiscordBtn.Activated:Connect(function()
+    if setclipboard then
+        setclipboard("https://discord.gg/FeSD9YyA4r")
+    end
+    setStatus("Discord copied ✔", Colors.Green)
+end)
+
+--------------------------------------------------
+-- AUTO CHECK SAVED KEY (FIXED)
+--------------------------------------------------
+task.spawn(function()
+    local saved = loadKey()
+    if not saved then return end
+    busy = true
+    setStatus("Checking saved key...", Color3.fromRGB(255,170,0))
+
+    local success, valid = pcall(function()
+        local J = getJunkie()
+        return J.verifyKey(Config.api, saved, Config.service)
+    end)
+
+    if success and valid then
+        setStatus("Saved key valid ✔", Colors.Green)
         task.wait(0.5)
         Gui:Destroy()
         main()
     else
-        setStatus("Invalid key!", Colors.Red)
+        setStatus("Saved key expired", Colors.Red)
+        busy = false
     end
-end)
-
--- DISCORD
-DiscordBtn.Activated:Connect(function()
-    local link = "https://discord.gg/FeSD9YyA4r"
-    if setclipboard then setclipboard(link) end
-    setStatus("Discord copied!", Colors.Green)
 end)
