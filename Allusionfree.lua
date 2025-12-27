@@ -1,8 +1,6 @@
 --[[
-    MOBILE VERSION (FIXED BUTTONS)
-    Original by @uerd
-    Mobile Adaptation: Added Toggle Menu & UI
-    Fix: Changed CoreGui to PlayerGui for mobile touch support
+    YOUTUBE TUTORIAL: https://www.youtube.com/watch?v=Yb2GXlsTmNM
+    MADE BY @uerd
 ]]
 
 Config = {
@@ -11,203 +9,78 @@ Config = {
     provider = "Anubis"
 }
 
--- Глобальные настройки
-getgenv().FarmSettings = {
-    AutoEquip = false,
-    AutoClick = false,
-    AutoFarm = false
-}
-
--- ФУНКЦИЯ MAIN: Запускается после проверки ключа
+-- ФУНКЦИЯ MAIN: Сюда вставлен твой основной скрипт
 local function main()
-    print("Key Validated! Loading Mobile UI...")
-    
-    local Players = game:GetService("Players")
-    local LocalPlayer = Players.LocalPlayer
-    local UserInputService = game:GetService("UserInputService")
-    local VirtualUser = game:GetService("VirtualUser")
+    print("Key Validated! Starting Script...")
 
-    -- /// ЛОГИКА ФАРМА /// --
+    -- Настройки
+    local ITEM_NAME = "Combat" 
+    local player = game:GetService("Players").LocalPlayer
 
-    -- 1. Auto Equip
-    task.spawn(function()
-        local ITEM_NAME = "Combat"
+    local function equipLoop()
         while true do
-            if getgenv().FarmSettings.AutoEquip then
-                pcall(function()
-                    local character = LocalPlayer.Character
-                    if character then
-                        local humanoid = character:FindFirstChildOfClass("Humanoid")
-                        local backpack = LocalPlayer:FindFirstChild("Backpack")
-                        
-                        if not character:FindFirstChild(ITEM_NAME) and backpack then
-                            local item = backpack:FindFirstChild(ITEM_NAME)
-                            if item and humanoid then
-                                humanoid:EquipTool(item)
-                            end
+            local character = player.Character
+            if character then
+                local humanoid = character:FindFirstChildOfClass("Humanoid")
+                local backpack = player:FindFirstChild("Backpack")
+                
+                if not character:FindFirstChild(ITEM_NAME) then
+                    if backpack then
+                        local item = backpack:FindFirstChild(ITEM_NAME)
+                        if item and humanoid then
+                            humanoid:EquipTool(item)
                         end
                     end
-                end)
+                end
+            end
+            task.wait(2)
+        end
+    end
+
+    task.spawn(equipLoop)
+
+    local VirtualUser = game:GetService("VirtualUser")
+    print("Hack Script: Auto-Clicker Started")
+
+    task.spawn(function()
+        while true do
+            VirtualUser:CaptureController()
+            VirtualUser:ClickButton1(Vector2.new(851, 158), workspace.CurrentCamera.CFrame)
+            task.wait(0.05) 
+        end
+    end)
+
+    -- Цикл телепортации
+    task.spawn(function()
+        local player = game:GetService("Players").LocalPlayer
+        while true do
+            wait(15)
+            player.Character.HumanoidRootPart.CFrame = game:GetService("Workspace").Bosses.Waiting.Titan.qw.CFrame
+            wait(8)
+            if game:GetService("Workspace").RespawnMobs.Titan.Titan.Titan then
+                player.Character.HumanoidRootPart.CFrame = game:GetService("Workspace").RespawnMobs.Titan.Titan.CFrame
+            end
+            wait (27)
+            player.Character.HumanoidRootPart.CFrame = game:GetService("Workspace").Bosses.Waiting.Muscle.qw.CFrame
+            wait(8)
+            if game:GetService("Workspace").RespawnMobs.Muscle.Muscle then
+                player.Character.HumanoidRootPart.CFrame = game:GetService("Workspace").RespawnMobs.Muscle.Muscle.CFrame
             end
             task.wait(1)
         end
-    end)
-
-    -- 2. Auto Clicker
-    task.spawn(function()
-        while true do
-            if getgenv().FarmSettings.AutoClick then
-                pcall(function()
-                    VirtualUser:CaptureController()
-                    VirtualUser:ClickButton1(Vector2.new(851, 158), workspace.CurrentCamera.CFrame)
-                end)
-                task.wait(0.1)
-            else
-                task.wait(1)
-            end
-        end
-    end)
-
-    -- 3. Teleport Farm
-    task.spawn(function()
-        while true do
-            if getgenv().FarmSettings.AutoFarm then
-                pcall(function()
-                    LocalPlayer.Character.HumanoidRootPart.CFrame = game:GetService("Workspace").Bosses.Waiting.Titan.qw.CFrame
-                    task.wait(8)
-                    if not getgenv().FarmSettings.AutoFarm then return end
-                    
-                    if game:GetService("Workspace").RespawnMobs.Titan:FindFirstChild("Titan") then
-                        LocalPlayer.Character.HumanoidRootPart.CFrame = game:GetService("Workspace").RespawnMobs.Titan.Titan.CFrame
-                    end
-                    task.wait(27) 
-                    if not getgenv().FarmSettings.AutoFarm then return end
-
-                    LocalPlayer.Character.HumanoidRootPart.CFrame = game:GetService("Workspace").Bosses.Waiting.Muscle.qw.CFrame
-                    task.wait(8)
-                    if not getgenv().FarmSettings.AutoFarm then return end
-
-                    if game:GetService("Workspace").RespawnMobs.Muscle:FindFirstChild("Muscle") then
-                        LocalPlayer.Character.HumanoidRootPart.CFrame = game:GetService("Workspace").RespawnMobs.Muscle.Muscle.CFrame
-                    end
-                end)
-            end
-            task.wait(1)
-        end
-    end)
-
-    -- /// МОБИЛЬНЫЙ GUI (ФАРМ) /// --
-    
-    local ScreenGui = Instance.new("ScreenGui")
-    ScreenGui.Name = "FarmMobileUI"
-    ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
-    ScreenGui.ResetOnSpawn = false
-    ScreenGui.DisplayOrder = 10000
-
-    -- Кнопка открытия
-    local OpenButton = Instance.new("TextButton")
-    OpenButton.Name = "ToggleMenu"
-    OpenButton.Parent = ScreenGui
-    OpenButton.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
-    OpenButton.Position = UDim2.new(0.85, 0, 0.4, 0)
-    OpenButton.Size = UDim2.new(0, 50, 0, 50)
-    OpenButton.Text = "⚙️"
-    OpenButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    OpenButton.TextSize = 24
-    Instance.new("UICorner", OpenButton).CornerRadius = UDim.new(0, 10)
-    
-    -- Меню
-    local MainFrame = Instance.new("Frame")
-    MainFrame.Name = "MainFrame"
-    MainFrame.Parent = ScreenGui
-    MainFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
-    MainFrame.Position = UDim2.new(0.5, -100, 0.5, -100)
-    MainFrame.Size = UDim2.new(0, 200, 0, 220)
-    MainFrame.Visible = false
-    Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
-    
-    local Title = Instance.new("TextLabel")
-    Title.Parent = MainFrame
-    Title.BackgroundTransparency = 1
-    Title.Position = UDim2.new(0, 0, 0, 5)
-    Title.Size = UDim2.new(1, 0, 0, 30)
-    Title.Text = "FARM CONTROL"
-    Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Title.Font = Enum.Font.GothamBold
-    Title.TextSize = 16
-
-    local function CreateToggle(name, text, settingName, yPos)
-        local Button = Instance.new("TextButton")
-        Button.Parent = MainFrame
-        Button.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-        Button.Position = UDim2.new(0.1, 0, 0, yPos)
-        Button.Size = UDim2.new(0.8, 0, 0, 35)
-        Button.Text = text .. ": OFF"
-        Button.TextColor3 = Color3.fromRGB(255, 255, 255)
-        Button.Font = Enum.Font.GothamBold
-        Button.TextSize = 14
-        Instance.new("UICorner", Button).CornerRadius = UDim.new(0, 8)
-
-        Button.MouseButton1Click:Connect(function()
-            getgenv().FarmSettings[settingName] = not getgenv().FarmSettings[settingName]
-            local state = getgenv().FarmSettings[settingName]
-            
-            if state then
-                Button.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
-                Button.Text = text .. ": ON"
-            else
-                Button.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-                Button.Text = text .. ": OFF"
-            end
-        end)
-    end
-
-    CreateToggle("EquipBtn", "Auto Equip", "AutoEquip", 50)
-    CreateToggle("ClickBtn", "Auto Click", "AutoClick", 100)
-    CreateToggle("FarmBtn", "Auto Farm", "AutoFarm", 150)
-
-    OpenButton.MouseButton1Click:Connect(function()
-        MainFrame.Visible = not MainFrame.Visible
-    end)
-    
-    -- Draggable Button
-    local dragging, dragInput, dragStart, startPos
-    local function update(input)
-        local delta = input.Position - dragStart
-        OpenButton.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-    end
-    OpenButton.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            dragging = true
-            dragStart = input.Position
-            startPos = OpenButton.Position
-            input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then dragging = false end
-            end)
-        end
-    end)
-    OpenButton.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-            dragInput = input
-        end
-    end)
-    UserInputService.InputChanged:Connect(function(input)
-        if input == dragInput and dragging then update(input) end
     end)
 end
 
 if getgenv().RedExecutorKeySys then return end
 getgenv().RedExecutorKeySys = true
 
--- /// KEY SYSTEM FIX /// --
+-- Services
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
-local Players = game:GetService("Players")
-local Player = Players.LocalPlayer
+local CoreGui = game:GetService("CoreGui")
+local HttpService = game:GetService("HttpService")
 
--- ИСПОЛЬЗУЕМ PLAYERGUI ВМЕСТО COREGUI ДЛЯ МОБИЛОК
-local ParentGui = Player:WaitForChild("PlayerGui")
-
+-- Configuration
 local KeySystemData = {
     Name = "Anubis HUB",
     Colors = {
@@ -221,7 +94,11 @@ local KeySystemData = {
         Success = Color3.fromRGB(80, 200, 80),
         Discord = Color3.fromRGB(88, 101, 242)
     },
-    DiscordInvite = "uerd"
+    Service = "redexecutor",
+    SilentMode = false,
+    DiscordInvite = "FeSD9YyA4r",
+    WebsiteURL = "https://yourwebsite.com/",
+    FileName = "redexecutor/key.txt"
 }
 
 local function CreateObject(class, props)
@@ -245,10 +122,10 @@ end
 
 local ScreenGui = CreateObject("ScreenGui", {
     Name = "RedExecutorKeySystem", 
-    Parent = ParentGui, -- FIX: Parented to PlayerGui
+    Parent = CoreGui, 
     ResetOnSpawn = false,
     ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
-    DisplayOrder = 10000 -- FIX: High DisplayOrder
+    DisplayOrder = 999
 })
 
 local MainFrame = CreateObject("Frame", {
@@ -260,8 +137,7 @@ local MainFrame = CreateObject("Frame", {
     Position = UDim2.new(0.5, 0, 0.5, 0),
     AnchorPoint = Vector2.new(0.5, 0.5),
     Size = UDim2.new(0, 350, 0, 250),
-    ClipsDescendants = true,
-    Active = true -- FIX: Active true
+    ClipsDescendants = true
 })
 CreateObject("UICorner", {CornerRadius = UDim.new(0, 8), Parent = MainFrame})
 
@@ -271,8 +147,7 @@ local TitleBar = CreateObject("Frame", {
     BackgroundColor3 = KeySystemData.Colors.Background,
     Size = UDim2.new(1, 0, 0, 30),
     BorderSizePixel = 0,
-    Position = UDim2.new(0, 0, 0, 0),
-    Active = true
+    Position = UDim2.new(0, 0, 0, 0)
 })
 CreateObject("UICorner", {CornerRadius = UDim.new(0, 8, 0, 0), Parent = TitleBar})
 
@@ -332,9 +207,7 @@ local SubmitButton = CreateObject("TextButton", {
     TextSize = 14,
     TextColor3 = KeySystemData.Colors.Title,
     AutoButtonColor = false,
-    AnchorPoint = Vector2.new(0.5, 0),
-    Active = true,
-    ZIndex = 2
+    AnchorPoint = Vector2.new(0.5, 0)
 })
 CreateObject("UICorner", {CornerRadius = UDim.new(0, 6), Parent = SubmitButton})
 
@@ -351,9 +224,7 @@ local GetKeyButton = CreateObject("TextButton", {
     TextSize = 14,
     TextColor3 = KeySystemData.Colors.Title,
     AutoButtonColor = false,
-    AnchorPoint = Vector2.new(0.5, 0),
-    Active = true,
-    ZIndex = 2
+    AnchorPoint = Vector2.new(0.5, 0)
 })
 CreateObject("UICorner", {CornerRadius = UDim.new(0, 6), Parent = GetKeyButton})
 
@@ -368,9 +239,7 @@ local DiscordButton = CreateObject("TextButton", {
     TextSize = 14,
     TextColor3 = Color3.fromRGB(255, 255, 255),
     AutoButtonColor = false,
-    AnchorPoint = Vector2.new(0.5, 0),
-    Active = true,
-    ZIndex = 2
+    AnchorPoint = Vector2.new(0.5, 0)
 })
 CreateObject("UICorner", {CornerRadius = UDim.new(0, 6), Parent = DiscordButton})
 
@@ -403,18 +272,31 @@ local function ShowStatusMessage(text, color)
     end)
 end
 
+-- Переработанная функция получения ключа
 local function openGetKey()
     local JunkieKeySystem = loadstring(game:HttpGet("https://junkie-development.de/sdk/JunkieKeySystem.lua"))()
     local API_KEY = Config.api
     local PROVIDER = Config.provider
     local SERVICE = Config.service
     local link = JunkieKeySystem.getLink(API_KEY, PROVIDER, SERVICE)
+    
     if link then
-        if setclipboard then
-            setclipboard(link)
-            ShowStatusMessage("Copied to clipboard!", KeySystemData.Colors.Success)
+        -- Попытка скопировать разными методами
+        local success = pcall(function()
+            if setclipboard then
+                setclipboard(link)
+            elseif toclipboard then
+                toclipboard(link)
+            end
+        end)
+        
+        -- Вставляем ссылку в TextBox, чтобы на мобилках её можно было скопировать вручную
+        KeyInput.Text = link
+        
+        if success then
+            ShowStatusMessage("Link copied & put in textbox!", KeySystemData.Colors.Success)
         else
-            ShowStatusMessage("Link created", KeySystemData.Colors.Success)
+            ShowStatusMessage("Link is in the textbox now!", KeySystemData.Colors.Success)
         end
     else
         ShowStatusMessage("Failed to generate link", KeySystemData.Colors.Error)
@@ -424,37 +306,44 @@ end
 local function validateKey()
     local userKey = KeyInput.Text:gsub("%s+", "")
     if not userKey or userKey == "" then
-        ShowStatusMessage("Enter a key first!", KeySystemData.Colors.Error)
+        ShowStatusMessage("Please enter a key.", KeySystemData.Colors.Error)
         return
     end
 
-    ShowStatusMessage("Checking...", Color3.fromRGB(255, 165, 0))
+    ShowStatusMessage("Validating key...", Color3.fromRGB(255, 165, 0))
     local JunkieKeySystem = loadstring(game:HttpGet("https://junkie-development.de/sdk/JunkieKeySystem.lua"))()
     local API_KEY = Config.api
     local SERVICE = Config.service
     local isValid = JunkieKeySystem.verifyKey(API_KEY, userKey, SERVICE)
     
     if isValid then
-        ShowStatusMessage("Success!", KeySystemData.Colors.Success)
+        ShowStatusMessage("Key valid! Loading...", KeySystemData.Colors.Success)
         SmoothTween(MainFrame, 0.5, {
             Position = UDim2.new(0.5, 0, -0.5, 0),
             BackgroundTransparency = 1
         })
         task.wait(0.5)
         ScreenGui:Destroy()
-        main() -- START MOBILE MAIN
+        main()
     else
-        ShowStatusMessage("Wrong Key!", KeySystemData.Colors.Error)
+        ShowStatusMessage("Invalid key. Try again!", KeySystemData.Colors.Error)
     end
 end
 
 SubmitButton.MouseButton1Click:Connect(validateKey)
 GetKeyButton.MouseButton1Click:Connect(openGetKey)
 
--- Simple Dragging Logic (Fixed for Mobile)
+-- Dragging logic
 local dragging, dragInput, dragStart, startPos
+local function onInputChanged(input)
+    if input == dragInput and dragging then
+        local delta = input.Position - dragStart
+        MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end
+
 TitleBar.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
         dragging = true
         dragStart = input.Position
         startPos = MainFrame.Position
@@ -463,30 +352,32 @@ TitleBar.InputBegan:Connect(function(input)
         end)
     end
 end)
+
 TitleBar.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-        dragInput = input
-    end
+    if input.UserInputType == Enum.UserInputType.MouseMovement then dragInput = input end
 end)
-UserInputService.InputChanged:Connect(function(input)
-    if input == dragInput and dragging then
-        local delta = input.Position - dragStart
-        MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-    end
-end)
+
+UserInputService.InputChanged:Connect(onInputChanged)
 
 DiscordButton.MouseButton1Click:Connect(function()
     local discordUrl = "https://discord.gg/" .. KeySystemData.DiscordInvite
     if setclipboard then
         setclipboard(discordUrl)
-        ShowStatusMessage("Discord Copied!", Color3.fromRGB(123, 48, 220))
+        ShowStatusMessage("Copied Discord invite!", Color3.fromRGB(123, 48, 220))
+    else
+        ShowStatusMessage("Join: " .. discordUrl, Color3.fromRGB(123, 48, 220))
     end
 end)
 
--- Start Animation
+KeyInput.FocusLost:Connect(function(enterPressed)
+    if enterPressed then validateKey() end
+end)
+
+-- Анимация появления
 MainFrame.Position = UDim2.new(0.5, 0, 0.4, 0)
 MainFrame.Size = UDim2.new(0, 0, 0, 0)
 MainFrame.BackgroundTransparency = 1
+
 SmoothTween(MainFrame, 0.5, {
     Size = UDim2.new(0, 350, 0, 250), 
     Position = UDim2.new(0.5, 0, 0.5, 0),
