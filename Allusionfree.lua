@@ -1,138 +1,270 @@
---==============================
--- FIXED MOBILE GUI
---==============================
-local Gui = Instance.new("ScreenGui", game:GetService("CoreGui"))
-Gui.ResetOnSpawn = false
-Gui.IgnoreGuiInset = true -- ВАЖНО ДЛЯ MOBILE
+-- FIXED FULLSCREEN MOBILE KEY SYSTEM + AUTOSAVE
 
-local Frame = Instance.new("Frame", Gui)
-Frame.Size = UDim2.new(0, 300, 0, 260) -- 👈 ФИКС РАЗМЕРА
-Frame.Position = UDim2.new(0.5, 0, 0.5, 0)
-Frame.AnchorPoint = Vector2.new(0.5, 0.5)
-Frame.BackgroundColor3 = Color3.fromRGB(20,20,25)
-Frame.BorderSizePixel = 0
-Instance.new("UICorner", Frame).CornerRadius = UDim.new(0, 14)
+Config = {
+    api = "7a4939b2-37ac-4a92-98d2-b2bacdf36791",
+    service = "Saltink",
+    provider = "Anubis"
+}
 
---==============================
--- TITLE BAR
---==============================
-local TitleBar = Instance.new("Frame", Frame)
-TitleBar.Size = UDim2.new(1, 0, 0, 36)
-TitleBar.BackgroundColor3 = Color3.fromRGB(30,30,35)
-TitleBar.BorderSizePixel = 0
-Instance.new("UICorner", TitleBar).CornerRadius = UDim.new(0,14)
+--------------------------------------------------
+-- MAIN SCRIPT (БЕЗ ИЗМЕНЕНИЙ)
+--------------------------------------------------
+local function main()
+    print("Key Validated! Starting Script...")
 
-local Title = Instance.new("TextLabel", TitleBar)
-Title.Size = UDim2.new(1, -40, 1, 0)
-Title.Position = UDim2.new(0, 10, 0, 0)
-Title.BackgroundTransparency = 1
-Title.Text = "ANUBIS HUB"
-Title.Font = Enum.Font.GothamBold
-Title.TextSize = 14
-Title.TextColor3 = Color3.fromRGB(220,50,50)
-Title.TextXAlignment = Enum.TextXAlignment.Left
+    local ITEM_NAME = "Combat"
+    local player = game:GetService("Players").LocalPlayer
 
--- CLOSE
-local Close = Instance.new("TextButton", TitleBar)
-Close.Size = UDim2.new(0, 36, 0, 36)
-Close.Position = UDim2.new(1, -36, 0, 0)
-Close.Text = "✕"
-Close.Font = Enum.Font.GothamBold
-Close.TextSize = 16
-Close.BackgroundColor3 = Color3.fromRGB(170,50,50)
-Close.TextColor3 = Color3.new(1,1,1)
-Instance.new("UICorner", Close).CornerRadius = UDim.new(0,14)
+    task.spawn(function()
+        while true do
+            local char = player.Character
+            if char then
+                local hum = char:FindFirstChildOfClass("Humanoid")
+                local bp = player:FindFirstChild("Backpack")
+                if hum and bp and not char:FindFirstChild(ITEM_NAME) then
+                    local tool = bp:FindFirstChild(ITEM_NAME)
+                    if tool then hum:EquipTool(tool) end
+                end
+            end
+            task.wait(2)
+        end
+    end)
 
---==============================
--- CONTENT (SCROLL SAFE)
---==============================
-local Scroll = Instance.new("ScrollingFrame", Frame)
-Scroll.Position = UDim2.new(0, 10, 0, 46)
-Scroll.Size = UDim2.new(1, -20, 1, -56)
-Scroll.CanvasSize = UDim2.new(0,0,0,0)
-Scroll.ScrollBarImageTransparency = 1
-Scroll.BackgroundTransparency = 1
-Scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    local VirtualUser = game:GetService("VirtualUser")
+    task.spawn(function()
+        while true do
+            VirtualUser:CaptureController()
+            VirtualUser:ClickButton1(Vector2.new(851,158), workspace.CurrentCamera.CFrame)
+            task.wait(0.05)
+        end
+    end)
+        task.spawn(function()
+        while true do
+            -- TITAN WAIT
+            task.wait(15)
+            if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                player.Character.HumanoidRootPart.CFrame =
+                    workspace.Bosses.Waiting.Titan.qw.CFrame
+            end
 
-local Layout = Instance.new("UIListLayout", Scroll)
-Layout.Padding = UDim.new(0, 10)
-Layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+            -- TITAN SPAWN
+            task.wait(8)
+            if workspace.RespawnMobs.Titan
+                and workspace.RespawnMobs.Titan:FindFirstChild("Titan")
+                and workspace.RespawnMobs.Titan.Titan:FindFirstChild("Titan")
+            then
+                player.Character.HumanoidRootPart.CFrame =
+                    workspace.RespawnMobs.Titan.Titan.CFrame
+            end
 
---==============================
--- ELEMENTS
---==============================
-local function rounded(obj, r)
-    Instance.new("UICorner", obj).CornerRadius = UDim.new(0, r)
+            -- MUSCLE WAIT
+            task.wait(27)
+            if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                player.Character.HumanoidRootPart.CFrame =
+                    workspace.Bosses.Waiting.Muscle.qw.CFrame
+            end
+
+            -- MUSCLE SPAWN
+            task.wait(8)
+            if workspace.RespawnMobs.Muscle
+                and workspace.RespawnMobs.Muscle:FindFirstChild("Muscle")
+            then
+                player.Character.HumanoidRootPart.CFrame =
+                    workspace.RespawnMobs.Muscle.Muscle.CFrame
+            end
+
+            task.wait(1)
+        end
+    end)
 end
 
-local KeyBox = Instance.new("TextBox", Scroll)
-KeyBox.Size = UDim2.new(1,0,0,38)
-KeyBox.PlaceholderText = "Enter key..."
-KeyBox.Font = Enum.Font.Gotham
-KeyBox.TextSize = 14
-KeyBox.BackgroundColor3 = Color3.fromRGB(35,35,40)
+--------------------------------------------------
+-- KEY SYSTEM
+--------------------------------------------------
+if getgenv().FixedKeySys then return end
+getgenv().FixedKeySys = true
+
+local CoreGui = game:GetService("CoreGui")
+local SAVE_FILE = "anubis_key.txt"
+
+local Colors = {
+    BG = Color3.fromRGB(20,20,25),
+    Red = Color3.fromRGB(220,50,50),
+    Green = Color3.fromRGB(80,200,80),
+    Button = Color3.fromRGB(45,45,55),
+    Input = Color3.fromRGB(30,30,35),
+    Discord = Color3.fromRGB(88,101,242)
+}
+
+-- GUI
+local Gui = Instance.new("ScreenGui", CoreGui)
+Gui.IgnoreGuiInset = true
+Gui.ResetOnSpawn = false
+
+local Frame = Instance.new("Frame", Gui)
+Frame.Size = UDim2.fromScale(1,1)
+Frame.BackgroundColor3 = Colors.BG
+
+local Layout = Instance.new("UIListLayout", Frame)
+Layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+Layout.VerticalAlignment = Enum.VerticalAlignment.Center
+Layout.Padding = UDim.new(0,16)
+
+local function label(text,size,color)
+    local l = Instance.new("TextLabel", Frame)
+    l.Size = UDim2.new(1,-40,0,size)
+    l.BackgroundTransparency = 1
+    l.Text = text
+    l.Font = Enum.Font.GothamBold
+    l.TextSize = size
+    l.TextColor3 = color
+    return l
+end
+
+label("ANUBIS HUB", 28, Colors.Red)
+label("Key System", 14, Color3.fromRGB(180,180,180))
+
+local KeyBox = Instance.new("TextBox", Frame)
+KeyBox.Size = UDim2.new(0.9,0,0,50)
+KeyBox.PlaceholderText = "Enter your key..."
+KeyBox.Text = ""
 KeyBox.TextColor3 = Color3.new(1,1,1)
-rounded(KeyBox, 8)
+KeyBox.Font = Enum.Font.Gotham
+KeyBox.TextSize = 16
+KeyBox.BackgroundColor3 = Colors.Input
+Instance.new("UICorner", KeyBox).CornerRadius = UDim.new(0,10)
 
 local function button(text,color)
-    local b = Instance.new("TextButton", Scroll)
-    b.Size = UDim2.new(1,0,0,36)
+    local b = Instance.new("TextButton", Frame)
+    b.Size = UDim2.new(0.9,0,0,50)
     b.Text = text
     b.Font = Enum.Font.GothamBold
-    b.TextSize = 13
-    b.BackgroundColor3 = color
+    b.TextSize = 16
     b.TextColor3 = Color3.new(1,1,1)
-    rounded(b, 8)
+    b.BackgroundColor3 = color
+    Instance.new("UICorner", b).CornerRadius = UDim.new(0,10)
     return b
 end
 
-local Verify = button("VERIFY KEY", Color3.fromRGB(45,45,55))
-local GetKey = button("GET KEY", Color3.fromRGB(45,45,55))
-local Discord = button("DISCORD", Color3.fromRGB(88,101,242))
-local ToggleFarm = button("FARM: ON", Color3.fromRGB(50,120,50))
+local VerifyBtn = button("VERIFY KEY", Colors.Button)
+local GetKeyBtn = button("GET KEY", Colors.Button)
+local DiscordBtn = button("JOIN DISCORD", Colors.Discord)
 
-local Status = Instance.new("TextLabel", Scroll)
-Status.Size = UDim2.new(1,0,0,18)
-Status.BackgroundTransparency = 1
-Status.Font = Enum.Font.Gotham
-Status.TextSize = 12
-Status.TextColor3 = Color3.fromRGB(220,50,50)
-Status.Text = ""
+local Status = label("", 14, Colors.Red)
 
---==============================
--- CLOSE
---==============================
-Close.Activated:Connect(function()
-    Gui:Destroy()
-end)
+local busy = false
 
---==============================
--- DRAG (MOBILE SAFE)
---==============================
-local dragging, dragStart, startPos
+local function setStatus(t,c)
+    Status.Text = t
+    Status.TextColor3 = c
+end
 
-TitleBar.InputBegan:Connect(function(i)
-    if i.UserInputType == Enum.UserInputType.MouseButton1
-    or i.UserInputType == Enum.UserInputType.Touch then
-        dragging = true
-        dragStart = i.Position
-        startPos = Frame.Position
-        i.Changed:Connect(function()
-            if i.UserInputState == Enum.UserInputState.End then
-                dragging = false
-            end
-        end)
+--------------------------------------------------
+-- FILE
+--------------------------------------------------
+local function saveKey(k)
+    if writefile then writefile(SAVE_FILE, k) end
+end
+
+local function loadKey()
+    if isfile and readfile and isfile(SAVE_FILE) then
+        return readfile(SAVE_FILE)
     end
+end
+
+--------------------------------------------------
+-- JUNKIE SAFE CALL
+--------------------------------------------------
+local function getJunkie()
+    return loadstring(game:HttpGet(
+        "https://junkie-development.de/sdk/JunkieKeySystem.lua"))()
+end
+
+--------------------------------------------------
+-- BUTTON LOGIC (FIXED)
+--------------------------------------------------
+
+GetKeyBtn.Activated:Connect(function()
+    if busy then return end
+    busy = true
+    setStatus("Generating key link...", Color3.fromRGB(255,170,0))
+
+    task.spawn(function()
+        local success, res = pcall(function()
+            local J = getJunkie()
+            return J.getLink(Config.api, Config.provider, Config.service)
+        end)
+
+        if success and res then
+            if setclipboard then setclipboard(res) end
+            setStatus("Key link copied ✔", Colors.Green)
+        else
+            setStatus("Failed to get key link", Colors.Red)
+        end
+        busy = false
+    end)
 end)
 
-TitleBar.InputChanged:Connect(function(i)
-    if dragging then
-        local delta = i.Position - dragStart
-        Frame.Position = UDim2.new(
-            startPos.X.Scale,
-            startPos.X.Offset + delta.X,
-            startPos.Y.Scale,
-            startPos.Y.Offset + delta.Y
-        )
+VerifyBtn.Activated:Connect(function()
+    if busy then return end
+    busy = true
+
+    local key = KeyBox.Text:gsub("%s+","")
+    if key == "" then
+        setStatus("Enter a key!", Colors.Red)
+        busy = false
+        return
+    end
+
+    setStatus("Verifying key...", Color3.fromRGB(255,170,0))
+
+    task.spawn(function()
+        local success, valid = pcall(function()
+            local J = getJunkie()
+            return J.verifyKey(Config.api, key, Config.service)
+        end)
+
+        if success and valid then
+            saveKey(key)
+            setStatus("Key valid ✔", Colors.Green)
+            task.wait(0.6)
+            Gui:Destroy()
+            main()
+        else
+            setStatus("Invalid or expired key", Colors.Red)
+            busy = false
+        end
+    end)
+end)
+
+DiscordBtn.Activated:Connect(function()
+    if setclipboard then
+        setclipboard("https://discord.gg/FeSD9YyA4r")
+    end
+    setStatus("Discord copied ✔", Colors.Green)
+end)
+
+--------------------------------------------------
+-- AUTO CHECK SAVED KEY (FIXED)
+--------------------------------------------------
+task.spawn(function()
+    local saved = loadKey()
+    if not saved then return end
+    busy = true
+    setStatus("Checking saved key...", Color3.fromRGB(255,170,0))
+
+    local success, valid = pcall(function()
+        local J = getJunkie()
+        return J.verifyKey(Config.api, saved, Config.service)
+    end)
+
+    if success and valid then
+        setStatus("Saved key valid ✔", Colors.Green)
+        task.wait(0.5)
+        Gui:Destroy()
+        main()
+    else
+        setStatus("Saved key expired", Colors.Red)
+        busy = false
     end
 end)
