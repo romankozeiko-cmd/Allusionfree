@@ -1,4 +1,4 @@
--- FIXED FULLSCREEN MOBILE KEY SYSTEM + AUTOSAVE
+-- FIXED COMPACT KEY SYSTEM + AUTOSAVE
 
 Config = {
     api = "7a4939b2-37ac-4a92-98d2-b2bacdf36791",
@@ -38,16 +38,15 @@ local function main()
             task.wait(0.05)
         end
     end)
-        task.spawn(function()
+
+    task.spawn(function()
         while true do
-            -- TITAN WAIT
             task.wait(15)
             if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
                 player.Character.HumanoidRootPart.CFrame =
                     workspace.Bosses.Waiting.Titan.qw.CFrame
             end
 
-            -- TITAN SPAWN
             task.wait(8)
             if workspace.RespawnMobs.Titan
                 and workspace.RespawnMobs.Titan:FindFirstChild("Titan")
@@ -57,14 +56,12 @@ local function main()
                     workspace.RespawnMobs.Titan.Titan.CFrame
             end
 
-            -- MUSCLE WAIT
             task.wait(27)
             if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
                 player.Character.HumanoidRootPart.CFrame =
                     workspace.Bosses.Waiting.Muscle.qw.CFrame
             end
 
-            -- MUSCLE SPAWN
             task.wait(8)
             if workspace.RespawnMobs.Muscle
                 and workspace.RespawnMobs.Muscle:FindFirstChild("Muscle")
@@ -72,8 +69,6 @@ local function main()
                 player.Character.HumanoidRootPart.CFrame =
                     workspace.RespawnMobs.Muscle.Muscle.CFrame
             end
-
-            task.wait(1)
         end
     end)
 end
@@ -96,19 +91,45 @@ local Colors = {
     Discord = Color3.fromRGB(88,101,242)
 }
 
+--------------------------------------------------
+-- FILE SYSTEM
+--------------------------------------------------
+local function saveKey(k)
+    if writefile then writefile(SAVE_FILE, k) end
+end
+
+local function loadKey()
+    if isfile and readfile and isfile(SAVE_FILE) then
+        local k = readfile(SAVE_FILE)
+        if k and #k > 5 then
+            return k
+        end
+    end
+end
+
+--------------------------------------------------
 -- GUI
+--------------------------------------------------
 local Gui = Instance.new("ScreenGui", CoreGui)
 Gui.IgnoreGuiInset = true
 Gui.ResetOnSpawn = false
 
 local Frame = Instance.new("Frame", Gui)
-Frame.Size = UDim2.fromScale(1,1)
+Frame.Size = UDim2.fromScale(0.85, 0.65)
+Frame.Position = UDim2.fromScale(0.5, 0.5)
+Frame.AnchorPoint = Vector2.new(0.5, 0.5)
 Frame.BackgroundColor3 = Colors.BG
+Instance.new("UICorner", Frame).CornerRadius = UDim.new(0,18)
+
+local Stroke = Instance.new("UIStroke", Frame)
+Stroke.Color = Color3.fromRGB(60,60,75)
+Stroke.Thickness = 1.2
+Stroke.Transparency = 0.1
 
 local Layout = Instance.new("UIListLayout", Frame)
 Layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 Layout.VerticalAlignment = Enum.VerticalAlignment.Center
-Layout.Padding = UDim.new(0,16)
+Layout.Padding = UDim.new(0,14)
 
 local function label(text,size,color)
     local l = Instance.new("TextLabel", Frame)
@@ -121,25 +142,25 @@ local function label(text,size,color)
     return l
 end
 
-label("ANUBIS HUB", 28, Colors.Red)
+label("ANUBIS HUB", 26, Colors.Red)
 label("Key System", 14, Color3.fromRGB(180,180,180))
 
 local KeyBox = Instance.new("TextBox", Frame)
-KeyBox.Size = UDim2.new(0.9,0,0,50)
+KeyBox.Size = UDim2.new(0.85,0,0,44)
 KeyBox.PlaceholderText = "Enter your key..."
-KeyBox.Text = ""
+KeyBox.Text = loadKey() or ""
 KeyBox.TextColor3 = Color3.new(1,1,1)
 KeyBox.Font = Enum.Font.Gotham
-KeyBox.TextSize = 16
+KeyBox.TextSize = 15
 KeyBox.BackgroundColor3 = Colors.Input
 Instance.new("UICorner", KeyBox).CornerRadius = UDim.new(0,10)
 
 local function button(text,color)
     local b = Instance.new("TextButton", Frame)
-    b.Size = UDim2.new(0.9,0,0,50)
+    b.Size = UDim2.new(0.85,0,0,44)
     b.Text = text
     b.Font = Enum.Font.GothamBold
-    b.TextSize = 16
+    b.TextSize = 15
     b.TextColor3 = Color3.new(1,1,1)
     b.BackgroundColor3 = color
     Instance.new("UICorner", b).CornerRadius = UDim.new(0,10)
@@ -151,7 +172,6 @@ local GetKeyBtn = button("GET KEY", Colors.Button)
 local DiscordBtn = button("JOIN DISCORD", Colors.Discord)
 
 local Status = label("", 14, Colors.Red)
-
 local busy = false
 
 local function setStatus(t,c)
@@ -160,20 +180,7 @@ local function setStatus(t,c)
 end
 
 --------------------------------------------------
--- FILE
---------------------------------------------------
-local function saveKey(k)
-    if writefile then writefile(SAVE_FILE, k) end
-end
-
-local function loadKey()
-    if isfile and readfile and isfile(SAVE_FILE) then
-        return readfile(SAVE_FILE)
-    end
-end
-
---------------------------------------------------
--- JUNKIE SAFE CALL
+-- JUNKIE
 --------------------------------------------------
 local function getJunkie()
     return loadstring(game:HttpGet(
@@ -181,21 +188,19 @@ local function getJunkie()
 end
 
 --------------------------------------------------
--- BUTTON LOGIC (FIXED)
+-- BUTTONS
 --------------------------------------------------
-
 GetKeyBtn.Activated:Connect(function()
     if busy then return end
     busy = true
     setStatus("Generating key link...", Color3.fromRGB(255,170,0))
 
     task.spawn(function()
-        local success, res = pcall(function()
-            local J = getJunkie()
-            return J.getLink(Config.api, Config.provider, Config.service)
+        local ok,res = pcall(function()
+            return getJunkie().getLink(Config.api, Config.provider, Config.service)
         end)
 
-        if success and res then
+        if ok and res then
             if setclipboard then setclipboard(res) end
             setStatus("Key link copied ✔", Colors.Green)
         else
@@ -219,12 +224,11 @@ VerifyBtn.Activated:Connect(function()
     setStatus("Verifying key...", Color3.fromRGB(255,170,0))
 
     task.spawn(function()
-        local success, valid = pcall(function()
-            local J = getJunkie()
-            return J.verifyKey(Config.api, key, Config.service)
+        local ok,valid = pcall(function()
+            return getJunkie().verifyKey(Config.api, key, Config.service)
         end)
 
-        if success and valid then
+        if ok and valid then
             saveKey(key)
             setStatus("Key valid ✔", Colors.Green)
             task.wait(0.6)
@@ -245,7 +249,7 @@ DiscordBtn.Activated:Connect(function()
 end)
 
 --------------------------------------------------
--- AUTO CHECK SAVED KEY (FIXED)
+-- AUTO CHECK SAVED KEY
 --------------------------------------------------
 task.spawn(function()
     local saved = loadKey()
@@ -253,12 +257,11 @@ task.spawn(function()
     busy = true
     setStatus("Checking saved key...", Color3.fromRGB(255,170,0))
 
-    local success, valid = pcall(function()
-        local J = getJunkie()
-        return J.verifyKey(Config.api, saved, Config.service)
+    local ok,valid = pcall(function()
+        return getJunkie().verifyKey(Config.api, saved, Config.service)
     end)
 
-    if success and valid then
+    if ok and valid then
         setStatus("Saved key valid ✔", Colors.Green)
         task.wait(0.5)
         Gui:Destroy()
